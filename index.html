@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#1a0533;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+  .deck{width:100%;max-width:860px}
+  .slide{display:none;background:#1a0533;border-radius:16px;min-height:480px;padding:48px 56px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.08);flex-direction:column}
+  .slide.active{display:flex}
+  .slide::before{content:'';position:absolute;top:-120px;right:-120px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(130,0,255,0.18) 0%,transparent 70%);pointer-events:none}
+  .tag{display:inline-block;background:#820ad1;color:#fff;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:4px 12px;border-radius:100px;margin-bottom:18px;width:fit-content}
+  h1{font-size:28px;font-weight:700;line-height:1.2;color:#fff;margin-bottom:10px}
+  .sub{font-size:14px;color:rgba(255,255,255,0.55);line-height:1.65;margin-bottom:20px}
+  .meta{font-size:12px;color:rgba(255,255,255,0.3);margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06)}
+  .ac{color:#b36ae2}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:15px 17px}
+  .ct{font-size:13px;font-weight:600;color:#fff;margin-bottom:5px}
+  .cx{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5}
+  .items{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+  .item{display:flex;align-items:flex-start;gap:13px;opacity:0;transform:translateY(8px);transition:all 0.3s ease}
+  .item.show{opacity:1;transform:translateY(0)}
+  .dot{width:27px;height:27px;min-width:27px;border-radius:50%;background:#820ad1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin-top:2px;flex-shrink:0}
+  .it{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6}
+  .it strong{color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+  th{text-align:left;padding:9px 13px;background:rgba(130,10,209,0.25);color:#c98dea;font-weight:600;font-size:11px;letter-spacing:0.8px;text-transform:uppercase}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.78);vertical-align:top;font-size:13px;line-height:1.5}
+  tr:last-child td{border-bottom:none}
+  tr.item{display:table-row}
+  .badge{display:inline-block;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
+  .bp{background:rgba(130,10,209,0.25);color:#c98dea}
+  .bd{background:rgba(239,159,39,0.2);color:#f5c979}
+  .bc{background:rgba(29,158,117,0.2);color:#5dcaa5}
+  .box{background:rgba(130,10,209,0.12);border:1px solid rgba(130,10,209,0.3);border-radius:12px;padding:16px 20px;margin-top:12px;font-size:14px;color:rgba(255,255,255,0.75);line-height:1.7}
+  .box em{color:#c98dea;font-style:normal;font-weight:600}
+  .gbox{background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.3);border-radius:12px;padding:14px 18px;margin-top:14px}
+  .gt{font-size:13px;font-weight:600;color:#5dcaa5;margin-bottom:5px}
+  .gx{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.6}
+  .tklist{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+  .tk{display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 18px;border-left:3px solid #820ad1;transition:all 0.3s ease}
+  .tkn{font-size:18px;font-weight:700;color:#820ad1;min-width:26px}
+  .tkt{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5}
+  /* cover */
+  .clogo{font-size:20px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:40px}
+  .clogo span{color:#820ad1}
+  .cey{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:14px}
+  .ctitle{font-size:36px;font-weight:700;line-height:1.15;color:#fff;margin-bottom:14px}
+  .ctitle em{color:#b36ae2;font-style:normal}
+  .csub{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:40px;line-height:1.6}
+  .cpills{display:flex;gap:8px;flex-wrap:wrap}
+  .cp{background:rgba(130,10,209,0.2);border:1px solid rgba(130,10,209,0.4);border-radius:100px;padding:5px 14px;font-size:12px;color:#c98dea}
+  .ttag{display:inline-block;font-size:10px;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);border-radius:100px;padding:2px 9px;margin-left:7px;vertical-align:middle}
+  /* scenario */
+  .scbox{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:13px;padding:20px 22px;margin-bottom:16px}
+  .sclabel{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#b36ae2;margin-bottom:8px}
+  .sctext{font-size:14px;color:#fff;line-height:1.6;font-weight:500}
+  .scopts{display:flex;flex-direction:column;gap:9px}
+  .scopt{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:13px 16px;font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:11px;text-align:left;width:100%}
+  .scopt:hover{background:rgba(130,10,209,0.15);border-color:rgba(130,10,209,0.4)}
+  .scopt.correct{background:rgba(29,158,117,0.15);border-color:rgba(29,158,117,0.5);color:#fff;pointer-events:none}
+  .scopt.wrong{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.35);color:rgba(255,255,255,0.4);pointer-events:none}
+  .scopt.disabled{pointer-events:none;opacity:0.5}
+  .ol{width:22px;height:22px;min-width:22px;border-radius:50%;background:rgba(130,10,209,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c98dea;flex-shrink:0;margin-top:1px}
+  .scfb{background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.3);border-radius:10px;padding:12px 16px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.55;display:none;margin-top:10px}
+  .scfb.wfb{background:rgba(226,75,74,0.08);border-color:rgba(226,75,74,0.3)}
+  .scfb.open{display:block}
+  /* quiz */
+  .qwrap{display:flex;flex-direction:column;flex:1}
+  .qdots{display:flex;gap:6px;margin-bottom:18px}
+  .qdot{flex:1;height:4px;border-radius:100px;background:rgba(255,255,255,0.1);transition:background 0.3s}
+  .qdot.done{background:#820ad1}
+  .qdot.cur{background:#b36ae2}
+  .qq{font-size:17px;font-weight:600;color:#fff;line-height:1.4;margin-bottom:18px}
+  .qopts{display:flex;flex-direction:column;gap:9px}
+  .qopt{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:13px 16px;font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:11px;width:100%;text-align:left}
+  .qopt:hover:not([disabled]){background:rgba(130,10,209,0.15);border-color:rgba(130,10,209,0.4)}
+  .qopt.correct{background:rgba(29,158,117,0.15);border-color:#5dcaa5;color:#fff}
+  .qopt.wrong{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.4);color:rgba(255,255,255,0.4)}
+  .qfb{font-size:13px;color:rgba(255,255,255,0.7);margin-top:12px;padding:11px 15px;background:rgba(255,255,255,0.04);border-radius:8px;line-height:1.55;display:none}
+  .qfb.open{display:block}
+  .qnext{margin-top:12px;background:#820ad1;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;padding:11px 26px;border-radius:100px;cursor:pointer;display:none;transition:opacity 0.2s}
+  .qnext.open{display:inline-block}
+  .qnext:hover{opacity:0.85}
+  .qscore{text-align:center;padding:20px 0;display:none;flex-direction:column;align-items:center}
+  .qscore.open{display:flex}
+  .semoji{font-size:48px;margin-bottom:14px}
+  .snum{font-size:38px;font-weight:700;color:#b36ae2;margin-bottom:8px}
+  .smsg{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6}
+  /* thank */
+  .thx{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center}
+  .thxicon{font-size:48px;margin-bottom:20px}
+  .thxtitle{font-size:30px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
+  .thxsub{font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;max-width:500px;margin-bottom:28px}
+  .slack{display:inline-flex;align-items:center;gap:9px;background:rgba(130,10,209,0.2);border:1px solid rgba(130,10,209,0.4);border-radius:100px;padding:9px 20px;font-size:13px;color:#c98dea;font-weight:500}
+  /* nav */
+  .nav{display:flex;align-items:center;justify-content:space-between;margin-top:18px;width:100%;max-width:860px;gap:10px}
+  .nbtn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:9px 20px;border-radius:100px;cursor:pointer;transition:background 0.15s}
+  .nbtn:hover{background:rgba(130,10,209,0.35)}
+  .nbtn:disabled{opacity:0.3;cursor:default}
+  .nbtn.rvl{background:rgba(130,10,209,0.2);border-color:rgba(130,10,209,0.4);color:#c98dea}
+  .nbtn.rvl:hover{background:rgba(130,10,209,0.4)}
+  .nbtn.fs{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);padding:9px 14px}
+  .nbtn.fs:hover{background:rgba(255,255,255,0.12)}
+  .nctr{font-size:12px;color:rgba(255,255,255,0.4);white-space:nowrap}
+  .prog{width:100%;max-width:860px;height:3px;background:rgba(255,255,255,0.08);border-radius:100px;margin-bottom:12px}
+  .progbar{height:3px;background:#820ad1;border-radius:100px;transition:width 0.3s}
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="prog"><div class="progbar" id="prog" style="width:6.67%"></div></div>
+
+  <!-- S1 COVER -->
+  <div class="slide active" id="s1">
+    <div class="clogo">nu<span>.</span></div>
+    <div class="cey">Business Control Officer · Global Lending</div>
+    <div class="ctitle">Risks &amp; Controls:<br><em>a foundation for<br>everyone in Lending</em></div>
+    <div class="csub">Lending Foundations BU · 30 minutes · All roles welcome</div>
+    <div class="cpills">
+      <div class="cp">What is risk?</div>
+      <div class="cp">What are controls?</div>
+      <div class="cp">Why does it matter to you?</div>
+    </div>
+  </div>
+
+  <!-- S2 AGENDA -->
+  <div class="slide" id="s2">
+    <div class="tag">Agenda</div>
+    <h1>What we'll cover today</h1>
+    <div class="sub">30 minutes. No prior knowledge required.</div>
+    <div class="items" id="r2">
+      <div class="item"><div class="dot">1</div><div class="it"><strong>Why are you here?</strong> <span class="ttag">5 min</span> &mdash; Why Lending Foundations sits at the center of Nubank's risk</div></div>
+      <div class="item"><div class="dot">2</div><div class="it"><strong>What is Risk?</strong> <span class="ttag">7 min</span> &mdash; Concept, types, and what it looks like in your work</div></div>
+      <div class="item"><div class="dot">3</div><div class="it"><strong>What are Controls?</strong> <span class="ttag">7 min</span> &mdash; How we prevent, detect, and fix problems</div></div>
+      <div class="item"><div class="dot">4</div><div class="it"><strong>Security &amp; Tech Debt</strong> <span class="ttag">8 min</span> &mdash; Two risks hiding in plain sight</div></div>
+      <div class="item"><div class="dot">5</div><div class="it"><strong>Closing + Quiz</strong> <span class="ttag">3 min</span> &mdash; Key takeaways and quick knowledge check</div></div>
+    </div>
+  </div>
+
+  <!-- S3 WHY YOU -->
+  <div class="slide" id="s3">
+    <div class="tag">Why are you here?</div>
+    <h1>Because if Foundations breaks,<br><span class="ac">everything breaks.</span></h1>
+    <div class="sub">Lending Foundations is the infrastructure every Lending product runs on &mdash; across Brazil, Mexico, and Colombia.</div>
+    <div class="items" id="r3">
+      <div class="item"><div class="dot">&rarr;</div><div class="it">Every loan hired, every payment processed, every credit decision by Unsecured, Secured, Payroll, PJ, MX, or CO <strong>depends on systems this BU owns.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">A failure here does not affect one product. It affects <strong>all of them, simultaneously, at scale.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">You are not here because risk is someone else's job. <strong>In Lending Foundations, you are the first line of defense.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">BACEN, Febraban, and regulators in MX and CO hold Nubank accountable for what happens inside this BU. <strong>What you build, how you build it, and whether it is controlled matters to them.</strong></div></div>
+    </div>
+    <div class="meta">This training is not a formality. It is the foundation for how we protect Nubank, our customers, and each other.</div>
+  </div>
+
+  <!-- S4 STAKES -->
+  <div class="slide" id="s4">
+    <div class="tag">Why are you here?</div>
+    <h1>The stakes are real.<br>Let's be honest about them.</h1>
+    <div class="grid">
+      <div class="card"><div class="ct">Financial loss</div><div class="cx">A bug in a payment or disbursement service can mean customers are charged incorrectly &mdash; or not at all. That's direct revenue and recovery risk.</div></div>
+      <div class="card"><div class="ct">Regulatory fine or restriction</div><div class="cx">BACEN and other regulators can fine Nubank or restrict our ability to operate if we cannot demonstrate controls. This has happened to other fintechs.</div></div>
+      <div class="card"><div class="ct">Customer trust</div><div class="cx">Millions of people chose Nubank over traditional banks. A preventable failure breaks that trust in a way that takes years to rebuild.</div></div>
+      <div class="card"><div class="ct">Market impact</div><div class="cx">Nubank is a public company. Operational and security incidents affect our stock, our narrative, and our ability to expand into new markets.</div></div>
+    </div>
+  </div>
+
+  <!-- S5 WHAT IS RISK -->
+  <div class="slide" id="s5">
+    <div class="tag">What is Risk?</div>
+    <h1>Let's start from scratch:<br>what is a <span class="ac">risk?</span></h1>
+    <div class="sub">A risk is the possibility that something goes wrong &mdash; and when it does, it hurts: financially, operationally, or for our customers.</div>
+    <div class="box">Think of it like driving to work. There is always a risk of an accident. You cannot eliminate that risk &mdash; but you wear a seatbelt, follow traffic rules, and do not text while driving. You <em>manage</em> the risk. That is exactly what we do at Nubank.</div>
+    <div class="items" id="r5" style="margin-top:16px">
+      <div class="item"><div class="dot">&rarr;</div><div class="it">Risk is <strong>not the same as a problem.</strong> It is the possibility of one &mdash; it may or may not happen.</div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">Risk is <strong>not something to eliminate.</strong> Every business takes risk. The goal is to take it consciously and within limits.</div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">Our job: <strong>identify, understand, and manage</strong> risks before they become real problems.</div></div>
+    </div>
+  </div>
+
+  <!-- S6 RISK TYPES -->
+  <div class="slide" id="s6b">
+    <div class="tag">What is Risk? &middot; Types</div>
+    <h1>Three types of risk<br>we deal with <span class="ac">every day</span></h1>
+    <table>
+      <thead><tr><th>Type</th><th>In plain English</th><th>Example in our world</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Operational Risk</strong></td>
+          <td>Something in our process, system or team fails</td>
+          <td>A service goes down during peak hours because no one owned the recovery playbook</td>
+        </tr>
+        <tr>
+          <td><strong>Security Risk</strong></td>
+          <td>Someone unauthorized accesses or damages our data or systems</td>
+          <td>A password gets exposed in a code repo and someone uses it to access production</td>
+        </tr>
+        <tr>
+          <td><strong>Regulatory &amp; Compliance Risk</strong></td>
+          <td>We fail to follow a rule that regulators or auditors require &mdash; and face consequences</td>
+          <td>BACEN requests evidence of how a credit decision was made. We cannot provide data lineage because the pipeline was never documented. Result: a formal finding &mdash; or worse, an operational restriction</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="box" style="margin-top:14px">Lending Foundations operates under <em>BACEN and Febraban in Brazil</em>, plus equivalent regulators in Mexico and Colombia. And because Nubank is a publicly traded company, we are also subject to <em>SOX (Sarbanes-Oxley)</em> &mdash; which means our financial controls and data trails are audited by external auditors like KPMG every year. A data or process failure here is not just a technical incident &mdash; it can become a regulatory event across multiple frameworks simultaneously.</div>
+  </div>
+
+  <!-- S6 RISK IN PRACTICE -->
+  <div class="slide" id="s6">
+    <div class="tag">What is Risk? &middot; In practice</div>
+    <h1>What does risk actually<br>look like in your work?</h1>
+    <div class="items" id="r6">
+      <div class="item"><div class="dot">Eng</div><div class="it"><strong>Engineer:</strong> You are the only person who knows how a critical service works. You go on vacation. It breaks. No one can fix it. &rarr; <em>Single point of failure.</em></div></div>
+      <div class="item"><div class="dot">TM</div><div class="it"><strong>Tech Manager:</strong> You skip staging because the deadline is tight. The change goes to production and takes down payments for 2 hours. &rarr; <em>Insufficient change control.</em></div></div>
+      <div class="item"><div class="dot">PM</div><div class="it"><strong>PM:</strong> You remove a validation step to ship faster. Six months later KPMG asks for evidence it was in place. It was not. &rarr; <em>Control gap.</em></div></div>
+      <div class="item"><div class="dot">AE</div><div class="it"><strong>Analytics Engineer:</strong> A pipeline breaks silently. No one notices for 3 days. Credit decisions were made on wrong data. &rarr; <em>Data integrity failure.</em></div></div>
+      <div class="item"><div class="dot">Ops</div><div class="it"><strong>Product Ops:</strong> You roll out a change without telling downstream teams. They find out when their metrics break. &rarr; <em>Lack of change communication.</em></div></div>
+    </div>
+  </div>
+
+  <!-- S7 SCENARIO 1 -->
+  <div class="slide" id="s7">
+    <div class="tag">Scenario &mdash; What would you do?</div>
+    <h1>Let's test this.</h1>
+    <div class="scbox">
+      <div class="sclabel">Situation</div>
+      <div class="sctext">It is Friday afternoon. You need to push a small fix urgently. Your lead is unavailable. You think: "It's just a config change &mdash; I'll skip the PR review this once."</div>
+    </div>
+    <div class="scopts" id="sc1opts">
+      <button class="scopt" id="sc1A"><div class="ol">A</div>Go ahead and push directly &mdash; it is a small change and the deadline matters.</button>
+      <button class="scopt" id="sc1B"><div class="ol">B</div>Find another engineer to do a quick review, even informally, before pushing.</button>
+      <button class="scopt" id="sc1C"><div class="ol">C</div>Wait until Monday when your lead is back, even if it delays the fix.</button>
+    </div>
+    <div class="scfb wfb" id="sc1fbA">Not quite. "Small changes" on Fridays without review are one of the most common causes of weekend outages. Urgency does not reduce risk &mdash; it usually increases it.</div>
+    <div class="scfb" id="sc1fbB">Correct! Even an informal second pair of eyes is a preventive control. The whole point of PR review is to catch what you cannot see yourself.</div>
+    <div class="scfb wfb" id="sc1fbC">Reasonable, but not necessary. You do not have to wait &mdash; you just need a reviewer. Any engineer can help. The control is the review, not the specific person.</div>
+  </div>
+
+  <!-- S8 CONTROLS -->
+  <div class="slide" id="s8">
+    <div class="tag">What are Controls?</div>
+    <h1>So what do we do about risk?<br>We build <span class="ac">controls.</span></h1>
+    <div class="sub">A control is anything we put in place to reduce the chance of something going wrong &mdash; or to reduce the damage when it does.</div>
+    <div class="box">Back to driving: a traffic light <em>prevents</em> accidents. A seatbelt <em>corrects</em> the impact when one happens. A speed camera <em>detects</em> when someone breaks the rules. None eliminates risk &mdash; but together they make the road much safer.</div>
+    <div class="items" id="r8" style="margin-top:16px">
+      <div class="item"><div class="dot">&rarr;</div><div class="it">Controls are not bureaucracy. They are <strong>what allows us to move fast without breaking things that matter.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">A control that exists on paper but is not followed <strong>is not a control. It is just a document.</strong></div></div>
+    </div>
+  </div>
+
+  <!-- S9 CONTROL TYPES -->
+  <div class="slide" id="s9">
+    <div class="tag">What are Controls? &middot; Types</div>
+    <h1>Three types of controls &mdash;<br>you already use all of them.</h1>
+    <table id="r9">
+      <thead><tr><th>Type</th><th>Goal</th><th>Real example in Foundations</th></tr></thead>
+      <tbody>
+        <tr class="item"><td><span class="badge bp">Preventive</span></td><td>Stop the problem before it happens</td><td>Mandatory PR review; staging validation before prod; approval before changing a critical config</td></tr>
+        <tr class="item"><td><span class="badge bd">Detective</span></td><td>Catch the problem when happening</td><td>Dashboard showing payment rates dropping in real time; automated test catching a broken pipeline instantly; weekly report flagging unusual loan state transitions</td></tr>
+        <tr class="item"><td><span class="badge bc">Corrective</span></td><td>Minimize damage and recover fast</td><td>A playbook with step-by-step recovery instructions; a rollback procedure any engineer can follow</td></tr>
+      </tbody>
+    </table>
+    <div class="meta">Preventive controls are always cheaper than corrective ones. It is far easier to stop a failure than to recover from one.</div>
+  </div>
+
+  <!-- S10 SECURITY -->
+  <div class="slide" id="s10">
+    <div class="tag">Security Risk</div>
+    <h1>Security risk, explained simply.</h1>
+    <div class="sub">Security risk means: someone who should not have access to something &mdash; gets it. Or something that should be reliable &mdash; gets broken or stolen.</div>
+    <div class="box">Imagine leaving your house key under the doormat. Even if nothing bad happens today, <em>the risk is real.</em> Now imagine that key opens the home of every single Nubank customer. That is the scale of what we are protecting.</div>
+    <div class="items" id="r10" style="margin-top:16px">
+      <div class="item"><div class="dot">1</div><div class="it"><strong>Never put passwords or keys in code.</strong> Even temporarily. Even in a private repo. Use the secrets manager.</div></div>
+      <div class="item"><div class="dot">2</div><div class="it"><strong>Do not leave customer data in plain sight.</strong> Names, document numbers, loan amounts should never appear in logs unprotected.</div></div>
+      <div class="item"><div class="dot">3</div><div class="it"><strong>Only ask for the access you actually need.</strong> Less access means less risk.</div></div>
+      <div class="item"><div class="dot">4</div><div class="it"><strong>When something looks off &mdash; say something.</strong> Early signal always beats late confirmation.</div></div>
+    </div>
+  </div>
+
+  <!-- S11 SCENARIO 2 -->
+  <div class="slide" id="s11">
+    <div class="tag">Scenario &mdash; What would you do?</div>
+    <h1>Security in practice.</h1>
+    <div class="scbox">
+      <div class="sclabel">Situation</div>
+      <div class="sctext">While reviewing a pull request, you notice a colleague accidentally committed a database connection string &mdash; including username and password &mdash; to the repo. It was merged an hour ago.</div>
+    </div>
+    <div class="scopts" id="sc2opts">
+      <button class="scopt" id="sc2A"><div class="ol">A</div>Send your colleague a private message and ask them to delete the commit quietly.</button>
+      <button class="scopt" id="sc2B"><div class="ol">B</div>Immediately flag it to the Tech Manager and Security team &mdash; the credential must be rotated now.</button>
+      <button class="scopt" id="sc2C"><div class="ol">C</div>The repo is private, so there is no real risk. Just make a note for next time.</button>
+    </div>
+    <div class="scfb wfb" id="sc2fbA">Not quite. Deleting the commit does not revoke the credential &mdash; it is already exposed. Handling it privately means the team cannot assess whether it was accessed.</div>
+    <div class="scfb" id="sc2fbB">Correct. The credential must be rotated immediately regardless of whether it was accessed. Surface it fast and do not try to handle it alone.</div>
+    <div class="scfb wfb" id="sc2fbC">"Private repo" is not a safe assumption. Repos can be cloned, leaked, or accidentally made public. Credentials in version history are a known attack vector.</div>
+  </div>
+
+  <!-- S12 TECH DEBT -->
+  <div class="slide" id="s12">
+    <div class="tag">Tech Debt as Risk</div>
+    <h1>Tech debt is not just a dev problem.<br>It is a <span class="ac">risk problem.</span></h1>
+    <div class="sub">Tech debt is what happens when we take shortcuts today to move faster &mdash; and those shortcuts pile up into fragility over time.</div>
+    <div class="box">Think of it like a messy kitchen. One unwashed dish is fine. But if you never clean up, eventually you cannot cook anything &mdash; and when you finally need the kitchen, it takes three times longer. <em>In platform teams, that mess shows up as incidents, outages, and audit findings.</em></div>
+    <div class="items" id="r12" style="margin-top:14px">
+      <div class="item"><div class="dot">&rarr;</div><div class="it">A service processing thousands of payments daily, built 3 years ago, with no documentation and architecture never updated. One unexpected spike and it falls over &mdash; <strong>and no one knows where to start.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">A data pipeline feeding credit decisions, built with a workaround that was "supposed to be temporary." Nobody remembers why it works that way. <strong>If it breaks, we cannot explain our decisions to regulators.</strong></div></div>
+      <div class="item"><div class="dot">&rarr;</div><div class="it">A critical config change that requires one specific engineer to do it manually every time. That engineer is the single point of failure &mdash; <strong>and they do not even know it.</strong></div></div>
+    </div>
+    <div class="gbox">
+      <div class="gt">BCO is structuring a Tech Debt project for Lending Foundations</div>
+      <div class="gx">We are building a structured approach to make tech debt visible, prioritized, and tracked as real risk. Starting in 2027, this initiative will give the BU a clear framework to address our most critical areas before they become incidents or audit findings.</div>
+    </div>
+  </div>
+
+  <!-- S13 TAKEAWAYS -->
+  <div class="slide" id="s13">
+    <div class="tag">Closing &middot; Key takeaways</div>
+    <h1>Five things to walk away with today</h1>
+    <div class="tklist" id="r13">
+      <div class="tk"><div class="tkn">1</div><div class="tkt"><strong>Risk is everywhere</strong> &mdash; in code, data, processes, decisions. The goal is not to avoid it. It is to manage it consciously.</div></div>
+      <div class="tk"><div class="tkn">2</div><div class="tkt"><strong>Controls are your safety net</strong> &mdash; preventive, detective, and corrective. They exist to protect customers, Nubank, and you.</div></div>
+      <div class="tk"><div class="tkn">3</div><div class="tkt"><strong>Security starts with simple habits</strong> &mdash; no secrets in code, no customer data in plain sight, only the access you need.</div></div>
+      <div class="tk"><div class="tkn">4</div><div class="tkt"><strong>Tech debt is a risk</strong> &mdash; make it visible, name it, manage it deliberately. BCO has a project in motion starting 2027.</div></div>
+      <div class="tk"><div class="tkn">5</div><div class="tkt"><strong>BCO is your partner</strong> &mdash; a question asked early is always better than a finding discovered late.</div></div>
+    </div>
+  </div>
+
+  <!-- S14 QUIZ -->
+  <div class="slide" id="s14">
+    <div class="tag">Quick Knowledge Check</div>
+    <h1>Let's see what stuck.</h1>
+    <div class="qwrap">
+      <div class="qdots" id="qdots">
+        <div class="qdot cur"></div><div class="qdot"></div><div class="qdot"></div><div class="qdot"></div>
+      </div>
+      <div id="qbody">
+        <div class="qq" id="qq"></div>
+        <div class="qopts" id="qopts"></div>
+        <div class="qfb" id="qfb"></div>
+        <button class="qnext" id="qnext">Next question</button>
+      </div>
+      <div class="qscore" id="qscore">
+        <div class="semoji" id="semoji"></div>
+        <div class="snum" id="snum"></div>
+        <div class="smsg" id="smsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S15 THANK YOU -->
+  <div class="slide" id="s15">
+    <div class="thx">
+      <div class="thxicon">💜</div>
+      <div class="thxtitle">Thank you, Lending Foundations.</div>
+      <div class="thxsub">You build the platform that keeps Nubank running for millions of customers every day. Understanding and owning risk is part of what makes this team exceptional.<br><br>We are grateful for your time and attention today.</div>
+      <div class="slack"><span>💬</span><span>Questions? Find us on Slack: <strong>#lending-bco-private</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nbtn rvl" id="btnReveal" style="display:none">Reveal next</button>
+  <button class="nbtn" id="btnPrev" disabled>Back</button>
+  <span class="nctr" id="nctr">1 / 15</span>
+  <button class="nbtn" id="btnNext">Next</button>
+</div>
+
+<script>
+window.onload = function() {
+(function() {  var cur = 1, total = 16;
+  var ri = {};
+  var rm = {2:'r2',3:'r3',5:'r5',7:'r6',9:'r8',10:'r9',11:'r10',13:'r12',14:'r13'};
+  var order = ['s1','s2','s3','s4','s5','s6b','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15'];
+
+  function items(n) {
+    var id = rm[n]; if (!id) return [];
+    var c = document.getElementById(id); if (!c) return [];
+    return Array.from(c.querySelectorAll('.item'));
+  }
+
+  function reveal() {
+    var its = items(cur), idx = ri[cur] || 0;
+    if (idx < its.length) { its[idx].classList.add('show'); ri[cur] = idx + 1; }
+    document.getElementById('btnReveal').disabled = (ri[cur] || 0) >= items(cur).length;
+  }
+
+  function goTo(n) {
+    document.getElementById(order[cur-1]).classList.remove('active');
+    cur = n;
+    document.getElementById(order[cur-1]).classList.add('active');
+    document.getElementById('nctr').textContent = cur + ' / ' + total;
+    document.getElementById('btnPrev').disabled = cur === 1;
+    document.getElementById('btnNext').disabled = cur === total;
+    document.getElementById('prog').style.width = (cur/total*100).toFixed(1)+'%';
+    var rb = document.getElementById('btnReveal');
+    var its = items(cur);
+    if (its.length) {
+      rb.style.display = 'inline-block';
+      rb.disabled = (ri[cur]||0) >= its.length;
+      if (!(ri[cur]||0)) reveal();
+    } else { rb.style.display = 'none'; }
+    if (cur === 15) startQuiz();
+  }
+
+  document.getElementById('btnPrev').onclick = function() { goTo(Math.max(1,cur-1)); };
+  document.getElementById('btnNext').onclick = function() { goTo(Math.min(total,cur+1)); };
+  document.getElementById('btnReveal').onclick = reveal;
+
+  var btnFs = document.getElementById('btnFs');
+  if (btnFs) {
+    btnFs.onclick = function() {
+      var el = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        btnFs.textContent = 'X';
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        btnFs.textContent = 'FS';
+      }
+    };
+    document.addEventListener('fullscreenchange', function() {
+      if (!document.fullscreenElement) btnFs.textContent = 'FS';
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown') goTo(Math.min(total,cur+1));
+    if (e.key==='ArrowLeft'||e.key==='ArrowUp') goTo(Math.max(1,cur-1));
+    if (e.key===' ') { e.preventDefault(); var rb=document.getElementById('btnReveal'); if(rb.style.display!=='none'&&!rb.disabled) reveal(); }
+  });
+
+  // Scenarios
+  function doScenario(sc, correct, choice) {
+    var opts = document.getElementById('sc'+sc+'opts').querySelectorAll('.scopt');
+    var letters = ['A','B','C'];
+    opts.forEach(function(o) { o.disabled = true; });
+    opts.forEach(function(o,i) {
+      if (letters[i]===correct) o.classList.add('correct');
+      else if (letters[i]===choice) o.classList.add('wrong');
+    });
+    letters.forEach(function(l) {
+      var fb = document.getElementById('sc'+sc+'fb'+l);
+      if (fb && (l===choice||l===correct)) fb.classList.add('open');
+    });
+  }
+
+  document.getElementById('sc1A').onclick = function() { doScenario(1,'B','A'); };
+  document.getElementById('sc1B').onclick = function() { doScenario(1,'B','B'); };
+  document.getElementById('sc1C').onclick = function() { doScenario(1,'B','C'); };
+  document.getElementById('sc2A').onclick = function() { doScenario(2,'B','A'); };
+  document.getElementById('sc2B').onclick = function() { doScenario(2,'B','B'); };
+  document.getElementById('sc2C').onclick = function() { doScenario(2,'B','C'); };
+
+  // Quiz
+  var qs = [
+    {q:'What type of control is a mandatory PR review before merging code?',
+     o:['Detective','Corrective','Preventive','Compliance'],c:2,
+     f:'A PR review stops problems before they reach production. That is the definition of a preventive control.'},
+    {q:'A data pipeline breaks silently and no one notices for 3 days. What type of risk is this?',
+     o:['Security Risk','Operational Risk','Market Risk','Compliance Risk only'],c:1,
+     f:'Operational Risk &mdash; a failure in a system or process that causes damage. It can also become a Compliance Risk if the bad data affected regulatory reporting.'},
+    {q:'You find a database password in a code commit. What is the most important first step?',
+     o:['Delete the commit and move on','Rotate the credential and notify Security','Wait to see if anyone accessed it','Message the author privately'],c:1,
+     f:'Rotate first, ask questions later. The credential is compromised the moment it is in version history. Security needs to know immediately.'},
+    {q:'What is tech debt, in terms of risk?',
+     o:['A financial liability on the balance sheet','Fragility that accumulates when shortcuts are not addressed over time','Only relevant to engineers','An internal audit finding'],c:1,
+     f:'Tech debt is accumulated fragility &mdash; shortcuts that made sense once but compound into risk over time. It affects everyone in the BU, not just engineers.'}
+  ];
+  var qi=0, qs_score=0, answered=false;
+
+  function startQuiz() {
+    qi=0; qs_score=0; answered=false;
+    document.getElementById('qscore').classList.remove('open');
+    document.getElementById('qbody').style.display='';
+    renderQ();
+  }
+
+  function renderQ() {
+    var q=qs[qi];
+    document.getElementById('qq').textContent=(qi+1)+'. '+q.q;
+    var c=document.getElementById('qopts'); c.innerHTML='';
+    q.o.forEach(function(o,i) {
+      var b=document.createElement('button');
+      b.className='qopt';
+      b.innerHTML='<div class="ol">'+'ABCD'[i]+'</div><span>'+o+'</span>';
+      b.onclick=function(){answerQ(i);};
+      c.appendChild(b);
+    });
+    document.getElementById('qfb').className='qfb';
+    document.getElementById('qfb').innerHTML='';
+    document.getElementById('qnext').className='qnext';
+    document.getElementById('qnext').textContent=qi<qs.length-1?'Next question':'See results';
+    answered=false;
+    var dots=document.getElementById('qdots').querySelectorAll('.qdot');
+    dots.forEach(function(d,i){d.className='qdot'+(i<qi?' done':i===qi?' cur':'');});
+  }
+
+  function answerQ(i) {
+    if (answered) return; answered=true;
+    var q=qs[qi];
+    var opts=document.getElementById('qopts').querySelectorAll('.qopt');
+    opts.forEach(function(o){o.disabled=true;});
+    if (i===q.c){opts[i].classList.add('correct');qs_score++;}
+    else{opts[i].classList.add('wrong');opts[q.c].classList.add('correct');}
+    var fb=document.getElementById('qfb');
+    fb.innerHTML=(i===q.c?'Correct! ':'Not quite. ')+q.f;
+    fb.classList.add('open');
+    document.getElementById('qnext').classList.add('open');
+  }
+
+  document.getElementById('qnext').onclick = function() {
+    qi++;
+    if (qi<qs.length){renderQ();}
+    else{
+      document.getElementById('qbody').style.display='none';
+      var sc=document.getElementById('qscore'); sc.classList.add('open');
+      var pct=Math.round(qs_score/qs.length*100);
+      document.getElementById('snum').textContent=qs_score+' / '+qs.length+' correct';
+      var e,m;
+      if(pct===100){e='🏆';m='Perfect score! You clearly paid attention. BCO is proud.';}
+      else if(pct>=75){e='🎉';m='Great job! You have got the key concepts down.';}
+      else if(pct>=50){e='💪';m='Good start! Review the slides on controls and security.';}
+      else{e='📚';m='No worries &mdash; revisit the slides and reach out to BCO with any questions.';}
+      document.getElementById('semoji').textContent=e;
+      document.getElementById('smsg').textContent=m;
+    }
+  };
+
+  goTo(1);
+})();
+};
+</script>
+</body>
+</html>
